@@ -1,0 +1,4 @@
+{:source-paths ["src"]
+ :dependencies [[lilactown/helix "0.1.5"]
+                [binaryage/devtools "1.0.6"]]
+ }
