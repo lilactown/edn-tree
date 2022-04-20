@@ -1,13 +1,17 @@
 .town_lilac_view-edn__body {
-    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-family:Arial, Helvetica, sans-serif;
 }
 
 .town_lilac_view-edn__view {
-    padding: 5;
+    padding: 5px;
     padding-top: 0;
     padding-bottom: 0;
 }
 
-.town_lilac_view-edn__view-coll .expanded {
-    display: "flex";
+.town_lilac_view-edn__view-coll {
+    display: flex;
+}
+
+.town_lilac_view-edn__view-coll__expanded {
+    display: block;
 }
