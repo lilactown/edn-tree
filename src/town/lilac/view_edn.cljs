@@ -7,42 +7,70 @@
 
 (declare view)
 
+(defnc toggle
+  [{:keys [expanded? on-change]}]
+  (d/label
+   {:class ["town_lilac_view-edn__caret"
+            (when expanded?
+              "town_lilac_view-edn__caret__expanded")]}
+   (d/input
+    {:type "checkbox"
+     :checked expanded?
+     :on-change (when on-change
+                  #(on-change (.. % -target -checked)))})))
+
 
 (defnc map-view
-  [{:keys [data]}]
-  (d/div
-   (for [[k v] data]
+  [{:keys [data initial-realized?]}]
+  (let [[realized? set-realized] (hooks/use-state initial-realized?)
+        [expanded? set-expanded] (hooks/use-state false)]
+    (d/div
+     {:class ["town_lilac_view-edn__view"]
+      :on-click #(set-realized true)}
+     ($ toggle
+        {:expanded? expanded?
+         :on-change #(set-expanded %)})
+     (d/span {:class "town_lilac_view-edn__map_begin"} "{")
      (d/div
-      {:key (str (hash k) (hash v))
-       :class ["town_lilac_view-edn__view"
-               "town_lilac_view-edn__view-coll"]}
-      ($ view {:data k :realized? true})
-      ($ view {:data v})))))
+      {:class ["town_lilac_view-edn__view-coll"
+               (when expanded?
+                 "town_lilac_view-edn__view-coll__expanded")]}
+      (if realized?
+        (for [[k v] data]
+         (d/div
+          {:key (str (hash k) (hash v))
+           :class "town_lilac_view-edn__view-key-value"}
+          ($ view {:data k :realized? true})
+          ($ view {:data v})))
+        "..."))
+     (d/span {:class "town_lilac_view-edn__map_end"} "}"))))
 
 
 (defnc list-view
-  [{:keys [data]}]
+  [{:keys [data initial-realized?]}]
   (let [[begin end] (if (vector? data) "[]" "()")
-        [realized? set-realized] (hooks/use-state false)
+        [realized? set-realized] (hooks/use-state initial-realized?)
         [expanded? set-expanded] (hooks/use-state false)]
     (d/div
-     {:class ["town_lilac_view-edn__view"
-              "town_lilac_view-edn__view-coll"
-              (when expanded?
-                "town_lilac_view-edn__view-coll__expanded")]
+     {:class ["town_lilac_view-edn__view"]
       :on-click (fn [e]
                   (.stopPropagation e)
-                  (if realized?
-                    (set-expanded not)
-                    (set-realized true)))}
-     begin
-     (if realized?
-       (for [v data]
-         (d/div
-          {:key (hash v)}
-          ($ view {:data v})))
-       "...")
-     end)))
+                  (set-realized true))}
+     ($ toggle
+        {:expanded? expanded?
+         :on-change #(set-expanded (.. % -target -checked))})
+     (d/span {:class "town_lilac_view-edn__list_begin"} begin)
+     (d/div
+      {:class ["town_lilac_view-edn__view-coll"
+               (when expanded?
+                 "town_lilac_view-edn__view-coll__expanded")]}
+      (if realized?
+        (for [v data]
+          (d/div
+           {:key (hash v)}
+           ($ view {:data v})))
+        "..."))
+     (d/span {:class "town_lilac_view-edn__list_begin"} end))))
 
 
 (defnc view
@@ -50,7 +78,10 @@
   (cond
     (map? data) ($ map-view {:data data})
     (coll? data) ($ list-view {:data data})
-    :else (d/span 
+    (string? data) (d/span
+                    {:class "town_lilac_view-edn__view"}
+                    "\"" data "\"")
+    :else (d/span
            {:class "town_lilac_view-edn__view"}
            (str data))))
 
