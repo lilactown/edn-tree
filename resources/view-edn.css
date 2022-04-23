@@ -1,8 +1,4 @@
-.town_lilac_view-edn__caret input[type="checkbox"]{
-    display: none;
-}
-
-.town_lilac_view-edn__caret::before {
+.town_lilac_view-edn__view [role="treeitem"]::before {
     content: ' ';
     display: inline-block;
   
@@ -11,19 +7,15 @@
     border-left: 5px solid black;
   
     vertical-align: middle;
-    margin-right: .7rem;
+    margin-right: .4rem;
+    margin-left: .2rem;
     transform: translateY(-2px);
   
     transition: transform .2s ease-out;
 }
 
-.town_lilac_view-edn__caret__expanded::before {
+.town_lilac_view-edn__view [role="treeitem"][aria-expanded="true"]::before {
     transform: rotate(90deg) translateX(-3px);
-}
-
-.town_lilac_view-edn__caret__expanded {
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
 }
 
 .town_lilac_view-edn__view {
@@ -32,19 +24,25 @@
     padding: 5px;
     padding-top: 0;
     padding-bottom: 0;
-    display: flex;
 }
 
-.town_lilac_view-edn__view-coll {
-    display: flex;
+ul[role="tree"].town_lilac_view-edn__view,
+ul[role="group"].town_lilac_view-edn__view {
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.town_lilac_view-edn__view-coll__expanded {
-    flex-direction: column;
+.town_lilac_view-edn__view [role="treeitem"] {
+    display: block;
 }
 
-.town_lilac_view-edn__view-key-value {
-    display: flex;
+.town_lilac_view-edn__view [role="treeitem"] > ul {
+    display: inline-flex;
+}
+
+.town_lilac_view-edn__view > [role="treeitem"][aria-expanded="true"] > ul {
+    display: block;
 }
 
 .town_lilac_view-edn__map_begin {
