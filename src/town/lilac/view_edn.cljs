@@ -13,7 +13,7 @@
   (let [[expanded? set-expanded] (hooks/use-state false)]
     (d/li
      {:role "treeitem"
-      :aria-expanded? expanded?
+      :aria-expanded expanded?
       :on-click #(do (.stopPropagation %)
                      (set-expanded not))}
      (d/ul
@@ -77,12 +77,14 @@
     (map? data) ($ map-view {:data data :root? root?})
     (coll? data) ($ list-view {:data data :root? root?})
     (string? data) (d/li
-                    {:role "none"}
+                    {:role "none"
+                     :on-click #(.stopPropagation %)}
                     (d/span
                      {:class "town_lilac_view-edn__view"}
                      "\"" data "\""))
     :else (d/li
-           {:role "none"}
+           {:role "none"
+            :on-click #(.stopPropagation %)}
            (d/span
             {:class "town_lilac_view-edn__view"}
             (str data)))))
