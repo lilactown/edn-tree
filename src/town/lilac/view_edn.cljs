@@ -31,10 +31,13 @@
     (d/li
      {:role "treeitem"
       :aria-expanded expanded?
+      :class (when (or (not realized?) (> 2 (count data)))
+               "town_lilac_view-edn__no-expand")
       :on-click #(do (.stopPropagation %)
                      (set-expanded not))}
      (d/ul
-      {:class ["town_lilac_view-edn__view"]
+      {:class ["town_lilac_view-edn__view"
+               "town_lilac_view-edn__map-view"]
        :role "group"
        :on-click #(do (.stopPropagation %)
                       (set-realized true))}
@@ -59,7 +62,8 @@
        :on-click #(do (.stopPropagation %)
                       (set-expanded not))}
      (d/ul
-      {:class ["town_lilac_view-edn__view"]
+      {:class ["town_lilac_view-edn__view"
+               "town_lilac_view-edn__list-view"]
        :role "group"
        :on-click (fn [e]
                    (.stopPropagation e)
@@ -94,8 +98,8 @@
 (defnc root-view
   [{:keys [data]}]
   (d/ul
-   {:class "town_lilac_view-edn__view"
-    :role "tree"}
+   {:role "tree"
+    :class "town_lilac_view-edn__root"}
    ($ view {:data data})))
 
 
@@ -125,5 +129,5 @@
 
   (.render root (d/div "hi"))
 
-  (.render root ($ root-view {:data {:foo "bar" :baz [1 2 3 (range 4 10)]}}))
+  (.render root ($ root-view {:data {:foo "bar" :baz [1 2 3 {:arst {'neio (ex-info "foo" {})}} (range 4 10)]}}))
   )
