@@ -17,7 +17,8 @@
       :on-click #(do (.stopPropagation %)
                      (set-expanded not))}
      (d/ul
-      {:class "town_lilac_view-edn__view"
+      {:class ["town_lilac_view-edn__view"
+               "town_lilac_view-edn__map-entry"]
        :role "group"}
       ($ view {:data k})
       ($ view {:data v})))))
@@ -68,7 +69,7 @@
         (for [v data]
           ($ view {:key (hash v) :data v}))
         "...")
-      (d/span {:class "town_lilac_view-edn__list_begin"} end)))))
+      (d/span {:class "town_lilac_view-edn__list_end"} end)))))
 
 
 (defnc view

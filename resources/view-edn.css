@@ -24,6 +24,7 @@
     padding: 5px;
     padding-top: 0;
     padding-bottom: 0;
+    position: relative;
 }
 
 ul[role="tree"].town_lilac_view-edn__view,
@@ -31,6 +32,7 @@ ul[role="group"].town_lilac_view-edn__view {
     margin: 0;
     padding: 0;
     list-style: none;
+    padding-right: 12px;
 }
 
 .town_lilac_view-edn__view [role="treeitem"] {
@@ -42,21 +44,39 @@ ul[role="group"].town_lilac_view-edn__view {
 }
 
 .town_lilac_view-edn__view > [role="treeitem"][aria-expanded="true"] > ul {
-    display: block;
+    flex-direction: column;
+}
+
+.town_lilac_view-edn__view ul[role="group"] {
+    padding-left: 10px;
+}
+
+.town_lilac_view-edn__view.town_lilac_view-edn__map-entry[role="group"] {
+    padding-left: 0px;
 }
 
 .town_lilac_view-edn__map_begin {
     font-size: 1rem;
+    position: absolute;
+    left: -2px;
 }
 
 .town_lilac_view-edn__map_end {
     font-size: 1rem;
+    position: absolute;
+    right: 0;
+    bottom: 0;
 }
 
 .town_lilac_view-edn__list_begin {
     font-size: 1rem;
+    position: absolute;
+    left: -2px;
 }
 
 .town_lilac_view-edn__list_end {
     font-size: 1rem;
+    position: absolute;
+    right: 0;
+    bottom: 0;
 }
