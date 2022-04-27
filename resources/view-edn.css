@@ -35,6 +35,10 @@ li[role="treeitem"].town_lilac_view-edn__no-expand::before {
     gap: 0 5px;
 }
 
+/*.town_lilac_view-edn__root:focus, .town_lilac_view-edn__view:focus {
+    outline: 1px solid #000;
+}*/
+
 .town_lilac_view-edn__root > [role="treeitem"][aria-expanded="true"] > ul,
 .town_lilac_view-edn__view > [role="treeitem"][aria-expanded="true"] > ul {
     flex-direction: column;
