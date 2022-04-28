@@ -45,7 +45,7 @@
     :move-focus-prev
     (let [index (index-of #(= (:focus state) (:ref %))
                           (:nodes state))
-          next-index (if (< 0 (dec index)) (dec index) index)
+          next-index (if (<= 0 (dec index)) (dec index) index)
           next-ref (:ref (nth (:nodes state) next-index))]
       (js/console.log "prev" index next-index)
       (assoc state :focus next-ref))
@@ -108,12 +108,15 @@
         focus-ref (hooks/use-ref nil)
         {:keys [context
                 tabindex
-                handle-click]} (use-focus-leaf focus-ref)]
+                handle-click
+                handle-key-down]} (use-focus-leaf focus-ref)]
     (d/li
      {:role "treeitem"
       :aria-expanded expanded?
       :tabindex tabindex
       :ref focus-ref
+      :on-key-down #(do (.stopPropagation %)
+                        (handle-key-down %))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
@@ -144,7 +147,8 @@
       :ref focus-ref
       :class (when (or (not realized?) (> 2 (count data)))
                "town_lilac_view-edn__no-expand")
-      :on-key-down handle-key-down
+      :on-key-down #(do (.stopPropagation %)
+                        (handle-key-down %))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
@@ -176,7 +180,8 @@
         focus-ref (hooks/use-ref nil)
         {:keys [context
                 tabindex
-                handle-click]} (use-focus-leaf focus-ref)]
+                handle-click
+                handle-key-down]} (use-focus-leaf focus-ref)]
     (d/li
      {:role "treeitem"
       :aria-expanded expanded?
@@ -184,6 +189,8 @@
       :ref focus-ref
       :class (when (or (not realized?) (> 2 (count data)))
                "town_lilac_view-edn__no-expand")
+      :on-key-down #(do (.stopPropagation %)
+                        (handle-key-down %))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
