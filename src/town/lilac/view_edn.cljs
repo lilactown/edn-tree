@@ -116,7 +116,9 @@
       :tabindex tabindex
       :ref focus-ref
       :on-key-down #(do (.stopPropagation %)
-                        (handle-key-down %))
+                        (handle-key-down %)
+                        (when (= 13 (.-keyCode %))
+                          (set-expanded not)))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
@@ -148,7 +150,10 @@
       :class (when (or (not realized?) (> 2 (count data)))
                "town_lilac_view-edn__no-expand")
       :on-key-down #(do (.stopPropagation %)
-                        (handle-key-down %))
+                        (handle-key-down %)
+                        (when (= 13 (.-keyCode %))
+                          (set-realized true)
+                          (set-expanded not)))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
@@ -190,7 +195,10 @@
       :class (when (or (not realized?) (> 2 (count data)))
                "town_lilac_view-edn__no-expand")
       :on-key-down #(do (.stopPropagation %)
-                        (handle-key-down %))
+                        (handle-key-down %)
+                        (when (= 13 (.-keyCode %))
+                          (set-realized true)
+                          (set-expanded not)))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
