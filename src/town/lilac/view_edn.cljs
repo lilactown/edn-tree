@@ -26,16 +26,27 @@
   (nth [1 2 3] 1))
 
 
+(defn compare-pos
+  [e1 e2]
+  (condp (comp pos? bit-and) (.compareDocumentPosition e1 e2)
+    16 -1 ; e1 contains e2
+    8 1 ; e1 is contained in e2
+    4 -1 ; e1 before e2
+    2 1 ; e1 after e2
+    0))
+
+
 (defn focus-reducer
   [state action]
-  (js/console.log
-   (:focus state)
-   (to-array (map #(-> % :ref deref) (:nodes state))))
-
   (case (:type action)
     :add (let [{:keys [level value] :or {level 0}} action]
-           (update state :nodes conj {:level level
-                                      :ref value}))
+           (update state :nodes
+                   (fn [nodes]
+                     (sort-by
+                      (comp deref :ref)
+                      compare-pos
+                      (conj nodes {:level level
+                                   :ref value})))))
     :remove (let [{:keys [value]} action]
               (update state :nodes
                       (fn [nodes]
@@ -47,7 +58,6 @@
                           (:nodes state))
           next-index (if (<= 0 (dec index)) (dec index) index)
           next-ref (:ref (nth (:nodes state) next-index))]
-      (js/console.log "prev" index next-index)
       (assoc state :focus next-ref))
     :move-focus-next
     (let [index (index-of #(= (:focus state) (:ref %))
@@ -56,46 +66,45 @@
                        (inc index)
                        index)
           next-ref (:ref (nth (:nodes state) next-index))]
-      (js/console.log "next" index next-index (count (:nodes state)) next-ref)
       (assoc state :focus next-ref))))
 
 
 (defhook use-focus-tree
   []
-  (let [[tree set-tree] (hooks/use-reducer
+  (let [[tree dispatch] (hooks/use-reducer
                          focus-reducer
                          {:focus nil
                           :level 0
                           :nodes []})]
     (hooks/use-effect
      [(:focus tree)]
-     (prn (:focus tree))
      (when-let [el (and (:focus tree) @(:focus tree))]
        (.focus el)))
-    [tree set-tree]))
+    [tree dispatch]))
 
 
 (defhook use-focus-leaf
   [ref]
-  (let [[tree set-tree] (hooks/use-context focus-tree-context)
+  (let [[tree dispatch] (hooks/use-context focus-tree-context)
         {:keys [focus level]} tree]
     (hooks/use-effect
      [ref]
-     (set-tree {:type :add :value ref})
-     #(set-tree {:type :remove :value ref}))
+     (dispatch {:type :add :value ref})
+     #(dispatch {:type :remove :value ref}))
     {:context [tree
-               (fn set-tree' [action]
-                 (set-tree (assoc action :level (inc level))))]
+               (fn dispatch-with-level
+                 [action]
+                 (dispatch (assoc action :level (inc level))))]
      :tabindex (if (= focus ref) "0" "-1")
      :handle-click (fn set-focus
                      [e]
-                     (set-tree {:type :set-focus
+                     (dispatch {:type :set-focus
                                 :value ref}))
      :handle-key-down (fn move-focus
                         [e]
                         (case (.-keyCode e)
-                          (37 38) (set-tree {:type :move-focus-prev})
-                          (39 40) (set-tree {:type :move-focus-next})
+                          (37 38) (dispatch {:type :move-focus-prev})
+                          (39 40) (dispatch {:type :move-focus-next})
                           nil))}))
 
 
@@ -117,7 +126,7 @@
       :ref focus-ref
       :on-key-down #(do (.stopPropagation %)
                         (handle-key-down %)
-                        (when (= 13 (.-keyCode %))
+                        (when (= 13 (.-keyCode %)) ; enter
                           (set-expanded not)))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
@@ -151,7 +160,7 @@
                "town_lilac_view-edn__no-expand")
       :on-key-down #(do (.stopPropagation %)
                         (handle-key-down %)
-                        (when (= 13 (.-keyCode %))
+                        (when (= 13 (.-keyCode %)) ; enter
                           (set-realized true)
                           (set-expanded not)))
       :on-click #(do (.stopPropagation %)
@@ -196,7 +205,7 @@
                "town_lilac_view-edn__no-expand")
       :on-key-down #(do (.stopPropagation %)
                         (handle-key-down %)
-                        (when (= 13 (.-keyCode %))
+                        (when (= 13 (.-keyCode %)) ; enter
                           (set-realized true)
                           (set-expanded not)))
       :on-click #(do (.stopPropagation %)
