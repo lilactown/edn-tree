@@ -77,6 +77,9 @@
                           :level 0
                           :nodes []})]
     (hooks/use-effect
+     [(:nodes tree)]
+     (js/console.log (to-array (map (comp deref :ref) (:nodes tree)))))
+    (hooks/use-effect
      [(:focus tree)]
      (when-let [el (and (:focus tree) @(:focus tree))]
        (.focus el)))
@@ -84,35 +87,38 @@
 
 
 (defhook use-focus-leaf
-  [ref]
-  (let [[tree dispatch] (hooks/use-context focus-tree-context)
-        {:keys [focus level]} tree]
-    (hooks/use-effect
-     [ref]
-     (dispatch {:type :add :value ref})
-     #(dispatch {:type :remove :value ref}))
-    {:context [tree
-               (fn dispatch-with-level
-                 [action]
-                 (dispatch (assoc action :level (inc level))))]
-     :tabindex (if (= focus ref) "0" "-1")
-     :handle-click (fn set-focus
-                     [e]
-                     (dispatch {:type :set-focus
-                                :value ref}))
-     :handle-key-down (fn move-focus
-                        [e]
-                        (case (.-keyCode e)
-                          (37 38) (dispatch {:type :move-focus-prev})
-                          (39 40) (dispatch {:type :move-focus-next})
-                          nil))}))
+  ([ref] (use-focus-leaf ref {}))
+  ([ref {:keys [initial-focus?]}]
+   (let [[tree dispatch] (hooks/use-context focus-tree-context)
+         {:keys [focus level]} tree]
+     (hooks/use-effect
+      [ref]
+      (dispatch {:type :add :value ref})
+      (when initial-focus?
+        (dispatch {:type :set-focus :value ref}))
+      #(dispatch {:type :remove :value ref}))
+     {:context [tree
+                (fn dispatch-with-level
+                  [action]
+                  (dispatch (assoc action :level (inc level))))]
+      :tabindex (if (= focus ref) "0" "-1")
+      :handle-click (fn set-focus
+                      [e]
+                      (dispatch {:type :set-focus
+                                 :value ref}))
+      :handle-key-down (fn move-focus
+                         [e]
+                         (case (.-keyCode e)
+                           (37 38) (dispatch {:type :move-focus-prev})
+                           (39 40) (dispatch {:type :move-focus-next})
+                           nil))})))
 
 
 (declare view)
 
 
 (defnc map-entry-view
-  [{:keys [k v]}]
+  [{:keys [k v path set-lens]}]
   (let [[expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
         {:keys [context
@@ -127,7 +133,9 @@
       :on-key-down #(do (.stopPropagation %)
                         (handle-key-down %)
                         (when (= 13 (.-keyCode %)) ; enter
-                          (set-expanded not)))
+                          (set-expanded not))
+                        (when (= 27 (.-keyCode %)) ; escape
+                          (set-lens [])))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
@@ -138,19 +146,25 @@
        {:class ["town_lilac_view-edn__view"
                 "town_lilac_view-edn__map-entry"]
         :role "group"}
-       ($ view {:data k})
-       ($ view {:data v}))))))
+       ($ view {:data k
+                :path path
+                :set-lens set-lens})
+       ($ view {:data v
+                :path path
+                :set-lens set-lens}))))))
 
 
 (defnc map-view
-  [{:keys [data initial-realized?]}]
+  [{:keys [data path set-lens initial-realized?]}]
   (let [[realized? set-realized] (hooks/use-state initial-realized?)
         [expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
         {:keys [context
                 tabindex
                 handle-click
-                handle-key-down]} (use-focus-leaf focus-ref)]
+                handle-key-down]} (use-focus-leaf
+                                   focus-ref
+                                   {:initial-focus? initial-realized?})]
     (d/li
      {:role "treeitem"
       :aria-expanded expanded?
@@ -160,9 +174,14 @@
                "town_lilac_view-edn__no-expand")
       :on-key-down #(do (.stopPropagation %)
                         (handle-key-down %)
-                        (when (= 13 (.-keyCode %)) ; enter
-                          (set-realized true)
-                          (set-expanded not)))
+                        (case [(.-altKey %) (.-keyCode %)]
+                          [true 13] (set-lens path)
+                          ;; enter
+                          [false 13] (do (set-realized true)
+                                         (set-expanded not))
+                          ;; escape
+                          [false 27] (set-lens [])
+                          nil))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
@@ -181,13 +200,15 @@
          (for [[k v] data]
            ($ map-entry-view {:key (str (hash k) (hash v))
                               :k k
-                              :v v}))
+                              :v v
+                              :path (conj path k)
+                              :set-lens set-lens}))
          "...")
        (d/span {:class "town_lilac_view-edn__map_end"} "}"))))))
 
 
 (defnc list-view
-  [{:keys [data initial-realized?]}]
+  [{:keys [data path set-lens initial-realized?]}]
   (let [[begin end] (if (vector? data) "[]" "()")
         [realized? set-realized] (hooks/use-state initial-realized?)
         [expanded? set-expanded] (hooks/use-state false)
@@ -195,7 +216,9 @@
         {:keys [context
                 tabindex
                 handle-click
-                handle-key-down]} (use-focus-leaf focus-ref)]
+                handle-key-down]} (use-focus-leaf
+                                   focus-ref
+                                   {:initial-focus? initial-realized?})]
     (d/li
      {:role "treeitem"
       :aria-expanded expanded?
@@ -205,9 +228,14 @@
                "town_lilac_view-edn__no-expand")
       :on-key-down #(do (.stopPropagation %)
                         (handle-key-down %)
-                        (when (= 13 (.-keyCode %)) ; enter
-                          (set-realized true)
-                          (set-expanded not)))
+                        (case [(.-altKey %) (.-keyCode %)]
+                          [true 13] (set-lens path)
+                          ;; enter
+                          [false 13] (do (set-realized true)
+                                         (set-expanded not))
+                          ;; escape
+                          [false 27] (set-lens [])
+                          nil))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
@@ -224,17 +252,26 @@
                     (set-realized true))}
        (d/span {:class "town_lilac_view-edn__list_begin"} begin)
        (if realized?
-         (for [v data]
-           ($ view {:key (hash v) :data v}))
+         (for [[i v] (map-indexed vector data)]
+           ($ view {:key (hash v) 
+                    :data v
+                    :path (conj path i)
+                    :set-lens set-lens}))
          "...")
        (d/span {:class "town_lilac_view-edn__list_end"} end))))))
 
 
 (defnc view
-  [{:keys [data root?]}]
+  [{:keys [data path set-lens initial-realized?]}]
   (cond
-    (map? data) ($ map-view {:data data :root? root?})
-    (coll? data) ($ list-view {:data data :root? root?})
+    (map? data) ($ map-view {:data data
+                             :path path 
+                             :set-lens set-lens
+                             :initial-realized? initial-realized?})
+    (coll? data) ($ list-view {:data data
+                               :path path
+                               :set-lens set-lens
+                               :initial-realized? initial-realized?})
     (string? data) (d/li
                     {:role "none"
                      ;:tabindex "-1"
@@ -253,13 +290,17 @@
 
 (defnc root-view
   [{:keys [data]}]
-  (helix.core/provider
-   {:context focus-tree-context
-    :value (use-focus-tree)}
-   (d/ul
-    {:role "tree"
-     :class "town_lilac_view-edn__root"}
-    ($ view {:data data}))))
+  (let [[lens set-lens] (hooks/use-state [])]
+    (helix.core/provider
+     {:context focus-tree-context
+      :value (use-focus-tree)}
+     (d/ul
+      {:role "tree"
+       :class "town_lilac_view-edn__root"}
+      ($ view {:data (get-in data lens)
+               :path lens
+               :initial-realized? true
+               :set-lens set-lens})))))
 
 
 (comment
