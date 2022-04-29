@@ -77,9 +77,6 @@
                           :level 0
                           :nodes []})]
     (hooks/use-effect
-     [(:nodes tree)]
-     (js/console.log (to-array (map (comp deref :ref) (:nodes tree)))))
-    (hooks/use-effect
      [(:focus tree)]
      (when-let [el (and (:focus tree) @(:focus tree))]
        (.focus el)))
@@ -118,7 +115,7 @@
 
 
 (defnc map-entry-view
-  [{:keys [k v path set-lens]}]
+  [{:keys [k v]}]
   (let [[expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
         {:keys [context
@@ -133,9 +130,7 @@
       :on-key-down #(do (.stopPropagation %)
                         (handle-key-down %)
                         (when (= 13 (.-keyCode %)) ; enter
-                          (set-expanded not))
-                        (when (= 27 (.-keyCode %)) ; escape
-                          (set-lens [])))
+                          (set-expanded not)))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
                      (set-expanded not))}
@@ -146,16 +141,12 @@
        {:class ["town_lilac_view-edn__view"
                 "town_lilac_view-edn__map-entry"]
         :role "group"}
-       ($ view {:data k
-                :path path
-                :set-lens set-lens})
-       ($ view {:data v
-                :path path
-                :set-lens set-lens}))))))
+       ($ view {:data k})
+       ($ view {:data v}))))))
 
 
 (defnc map-view
-  [{:keys [data path set-lens initial-realized?]}]
+  [{:keys [data initial-realized?]}]
   (let [[realized? set-realized] (hooks/use-state initial-realized?)
         [expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
@@ -174,13 +165,10 @@
                "town_lilac_view-edn__no-expand")
       :on-key-down #(do (.stopPropagation %)
                         (handle-key-down %)
-                        (case [(.-altKey %) (.-keyCode %)]
-                          [true 13] (set-lens path)
-                          ;; enter
-                          [false 13] (do (set-realized true)
-                                         (set-expanded not))
-                          ;; escape
-                          [false 27] (set-lens [])
+                        (case (.-keyCode %)
+                         ;; enter
+                          13 (do (set-realized true)
+                                 (set-expanded not))
                           nil))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
@@ -200,16 +188,17 @@
          (for [[k v] data]
            ($ map-entry-view {:key (str (hash k) (hash v))
                               :k k
-                              :v v
-                              :path (conj path k)
-                              :set-lens set-lens}))
+                              :v v}))
          "...")
        (d/span {:class "town_lilac_view-edn__map_end"} "}"))))))
 
 
 (defnc list-view
-  [{:keys [data path set-lens initial-realized?]}]
-  (let [[begin end] (if (vector? data) "[]" "()")
+  [{:keys [data initial-realized?]}]
+  (let [[begin end] (cond
+                      (vector? data) "[]"
+                      (set? data) ["#{" "}"]
+                      :else "()")
         [realized? set-realized] (hooks/use-state initial-realized?)
         [expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
@@ -228,13 +217,10 @@
                "town_lilac_view-edn__no-expand")
       :on-key-down #(do (.stopPropagation %)
                         (handle-key-down %)
-                        (case [(.-altKey %) (.-keyCode %)]
-                          [true 13] (set-lens path)
-                          ;; enter
-                          [false 13] (do (set-realized true)
-                                         (set-expanded not))
-                          ;; escape
-                          [false 27] (set-lens [])
+                        (case (.-keyCode %)
+                         ;; enter
+                          13 (do (set-realized true)
+                                 (set-expanded not))
                           nil))
       :on-click #(do (.stopPropagation %)
                      (handle-click %)
@@ -244,7 +230,9 @@
        :value context}
       (d/ul
        {:class ["town_lilac_view-edn__view"
-                "town_lilac_view-edn__list-view"]
+                (if (set? data)
+                  "town_lilac_view-edn__set-view"
+                  "town_lilac_view-edn__list-view")]
         :role "group"
         :on-click (fn [e]
                     (.stopPropagation e)
@@ -254,23 +242,17 @@
        (if realized?
          (for [[i v] (map-indexed vector data)]
            ($ view {:key (hash v) 
-                    :data v
-                    :path (conj path i)
-                    :set-lens set-lens}))
+                    :data v}))
          "...")
        (d/span {:class "town_lilac_view-edn__list_end"} end))))))
 
 
 (defnc view
-  [{:keys [data path set-lens initial-realized?]}]
+  [{:keys [data initial-realized?]}]
   (cond
     (map? data) ($ map-view {:data data
-                             :path path 
-                             :set-lens set-lens
                              :initial-realized? initial-realized?})
     (coll? data) ($ list-view {:data data
-                               :path path
-                               :set-lens set-lens
                                :initial-realized? initial-realized?})
     (string? data) (d/li
                     {:role "none"
@@ -290,17 +272,14 @@
 
 (defnc root-view
   [{:keys [data]}]
-  (let [[lens set-lens] (hooks/use-state [])]
-    (helix.core/provider
-     {:context focus-tree-context
-      :value (use-focus-tree)}
-     (d/ul
-      {:role "tree"
-       :class "town_lilac_view-edn__root"}
-      ($ view {:data (get-in data lens)
-               :path lens
-               :initial-realized? true
-               :set-lens set-lens})))))
+  (helix.core/provider
+   {:context focus-tree-context
+    :value (use-focus-tree)}
+   (d/ul
+    {:role "tree"
+     :class "town_lilac_view-edn__root"}
+    ($ view {:data data
+             :initial-realized? true}))))
 
 
 (comment
@@ -328,4 +307,4 @@
 
   (.render root (d/div "hi"))
 
-  (.render root ($ root-view {:data {:foo "bar" :baz [1 2 3 {:arst {'neio (ex-info "foo" {})}} (range 4 10)]}})))
+  (.render root ($ root-view {:data {:foo #{"bar"} :baz [1 2 3 {:arst {'neio (ex-info "foo" {})}} (range 4 10)]}})))
