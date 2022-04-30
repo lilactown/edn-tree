@@ -1,4 +1,4 @@
-(ns town.lilac.view-edn
+(ns town.lilac.edn-tree
   (:require
    [helix.core :refer [$ <> defnc defhook fnc]]
    [helix.dom :as d :refer [$d]]
@@ -429,7 +429,7 @@
        head
        (doto (js/document.createElement "link")
          (-> (.-href)
-             (set! (str "http://localhost:8080/view-edn.css?r=" (gensym))))
+             (set! (str "http://localhost:8080/edn-tree.css?r=" (gensym))))
          (-> (.-rel) (set! "stylesheet"))))))
 
 
