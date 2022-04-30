@@ -413,7 +413,7 @@
                (str data)))))
 
 
-(defnc tree
+(defnc root
   [{:keys [class data initial-realize treeitem-as
            on-click on-realize on-expand on-focus on-blur
            auto-focus?]
@@ -458,17 +458,17 @@
 
 
   (require '["react-dom/client" :as rdom])
-  (def root (rdom/createRoot (js/document.getElementById "app")))
+  (def app-root (rdom/createRoot (js/document.getElementById "app")))
 
-  (.render root (d/div "hi"))
+  (.render app-root (d/div "hi"))
 
-  (.render root ($ tree {:data {:foo #{"bar"}
-                                :baz [1 2 3
-                                      {:arst {'neio (ex-info "foo" {})}}
-                                      (range 4 10)]}
-                         :initial-realize true
-                         :on-click #(prn "clicked" %2)
-                         :on-realize #(prn "realized" %2)
-                         :on-expand #(prn "expanded" %2)
-                         :on-focus #(prn "focus" %2)
-                         :on-blur #(prn "blur" %2)})))
+  (.render app-root ($ root {:data {:foo #{"bar"}
+                                    :baz [1 2 3
+                                          {:arst {'neio (ex-info "foo" {})}}
+                                          (range 4 10)]}
+                             :initial-realize true
+                             :on-click #(prn "clicked" %2)
+                             :on-realize #(prn "realized" %2)
+                             :on-expand #(prn "expanded" %2)
+                             :on-focus #(prn "focus" %2)
+                             :on-blur #(prn "blur" %2)})))
