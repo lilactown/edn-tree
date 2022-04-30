@@ -1,6 +1,6 @@
 (ns town.lilac.edn-tree
   (:require
-   [helix.core :refer [$ <> defnc defhook fnc]]
+   [helix.core :refer [$ defnc defhook]]
    [helix.dom :as d :refer [$d]]
    [helix.hooks :as hooks]))
 
@@ -100,7 +100,7 @@
                   (dispatch (assoc action :level (inc level))))]
       :tabindex (if (= focus ref) "0" "-1")
       :handle-click (fn set-focus
-                      [e]
+                      [_e]
                       (dispatch {:type :set-focus
                                  :value ref}))
       :handle-key-down (fn move-focus
