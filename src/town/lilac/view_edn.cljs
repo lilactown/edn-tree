@@ -115,7 +115,7 @@
 
 
 (defnc map-entry-view
-  [{:keys [k v]}]
+  [{:keys [k v initial-realize]}]
   (let [[expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
         {:keys [context
@@ -141,13 +141,15 @@
        {:class ["town_lilac_view-edn__view"
                 "town_lilac_view-edn__map-entry"]
         :role "group"}
-       ($ view {:data k})
-       ($ view {:data v}))))))
+       ($ view {:data k :initial-realize initial-realize})
+       ($ view {:data v :initial-realize initial-realize}))))))
 
 
 (defnc map-view
-  [{:keys [data initial-realized?]}]
-  (let [[realized? set-realized] (hooks/use-state initial-realized?)
+  [{:keys [data initial-realize]}]
+  (let [initial-realized? (or (true? initial-realize)
+                              (pos? initial-realize))
+        [realized? set-realized] (hooks/use-state initial-realized?)
         [expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
         {:keys [context
@@ -187,6 +189,9 @@
        (if realized?
          (for [[k v] data]
            ($ map-entry-view {:key (str (hash k) (hash v))
+                              :initial-realize (if (boolean? initial-realize)
+                                                 initial-realize
+                                                 (dec initial-realize))
                               :k k
                               :v v}))
          "...")
@@ -194,12 +199,15 @@
 
 
 (defnc list-view
-  [{:keys [data initial-realized?]}]
+  [{:keys [data initial-realize]}]
   (let [[begin end] (cond
                       (vector? data) "[]"
                       (set? data) ["#{" "}"]
                       :else "()")
-        [realized? set-realized] (hooks/use-state initial-realized?)
+        initial-realized? (or (true? initial-realize)
+                              (pos? initial-realize))
+        [realized? set-realized] (hooks/use-state (or (true? initial-realize)
+                                                      (pos? initial-realize)))
         [expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
         {:keys [context
@@ -241,19 +249,22 @@
        (d/span {:class "town_lilac_view-edn__list_begin"} begin)
        (if realized?
          (for [[i v] (map-indexed vector data)]
-           ($ view {:key (hash v) 
+           ($ view {:key (hash v)
+                    :initial-realize (if (boolean? initial-realize)
+                                       initial-realize
+                                       (dec initial-realize))
                     :data v}))
          "...")
        (d/span {:class "town_lilac_view-edn__list_end"} end))))))
 
 
 (defnc view
-  [{:keys [data initial-realized?]}]
+  [{:keys [data initial-realize]}]
   (cond
     (map? data) ($ map-view {:data data
-                             :initial-realized? initial-realized?})
+                             :initial-realize initial-realize})
     (coll? data) ($ list-view {:data data
-                               :initial-realized? initial-realized?})
+                               :initial-realize initial-realize})
     (string? data) (d/li
                     {:role "none"
                      ;:tabindex "-1"
@@ -271,7 +282,8 @@
 
 
 (defnc root-view
-  [{:keys [data]}]
+  [{:keys [data initial-realize]
+    :or {initial-realize 1}}]
   (helix.core/provider
    {:context focus-tree-context
     :value (use-focus-tree)}
@@ -279,7 +291,7 @@
     {:role "tree"
      :class "town_lilac_view-edn__root"}
     ($ view {:data data
-             :initial-realized? true}))))
+             :initial-realize initial-realize}))))
 
 
 (comment
