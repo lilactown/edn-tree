@@ -70,16 +70,26 @@
 
 
 (defhook use-focus-tree
-  []
+  [auto-focus?]
   (let [[tree dispatch] (hooks/use-reducer
                          focus-reducer
                          {:focus nil
                           :level 0
-                          :nodes []})]
+                          :nodes []})
+        initial-focus? (hooks/use-ref true)]
     (hooks/use-effect
      [(:focus tree)]
-     (when-let [el (and (:focus tree) @(:focus tree))]
-       (.focus el)))
+     (when-let [el (and (:focus tree) 
+                        ;; either it's not the initial focus,
+                        ;; or auto-focus? is true
+                        (or (not @initial-focus?)
+                            auto-focus?)
+                        @(:focus tree))]
+       (.focus el))
+     (when (and @initial-focus?
+                (some? (:focus tree))
+                (some? @(:focus tree)))
+       (reset! initial-focus? false)))
     [tree dispatch]))
 
 
@@ -122,7 +132,8 @@
 
 (defnc map-entry-view
   [{:keys [k v initial-realize treeitem-as
-           on-click on-realize on-expand on-focus on-blur]}]
+           on-click on-realize on-expand on-focus on-blur
+           initial-focus?]}]
   (let [[expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
         {:keys [context
@@ -185,7 +196,8 @@
 
 (defnc map-view
   [{:keys [data initial-realize treeitem-as
-           on-click on-realize on-expand on-focus on-blur]}]
+           on-click on-realize on-expand on-focus on-blur
+           initial-focus?]}]
   (let [initial-realized? (or (true? initial-realize)
                               (pos? initial-realize))
         [realized? set-realized] (hooks/use-state initial-realized?)
@@ -196,7 +208,7 @@
                 handle-click
                 handle-key-down]} (use-focus-leaf
                                    focus-ref
-                                   {:initial-focus? initial-realized?})]
+                                   {:initial-focus? initial-focus?})]
     ($d treeitem-as
      {:role "treeitem"
       :aria-expanded expanded?
@@ -267,15 +279,15 @@
 
 (defnc list-view
   [{:keys [data initial-realize treeitem-as
-           on-click on-realize on-expand on-focus on-blur]}]
+           on-click on-realize on-expand on-focus on-blur
+           initial-focus?]}]
   (let [[begin end] (cond
                       (vector? data) "[]"
                       (set? data) ["#{" "}"]
                       :else "()")
         initial-realized? (or (true? initial-realize)
                               (pos? initial-realize))
-        [realized? set-realized] (hooks/use-state (or (true? initial-realize)
-                                                      (pos? initial-realize)))
+        [realized? set-realized] (hooks/use-state initial-realized?)
         [expanded? set-expanded] (hooks/use-state false)
         focus-ref (hooks/use-ref nil)
         {:keys [context
@@ -283,7 +295,7 @@
                 handle-click
                 handle-key-down]} (use-focus-leaf
                                    focus-ref
-                                   {:initial-focus? initial-realized?})]
+                                   {:initial-focus? initial-focus?})]
     ($d treeitem-as
         {:role "treeitem"
          :aria-expanded expanded?
@@ -356,9 +368,11 @@
 
 (defnc view
   [{:keys [data initial-realize treeitem-as
-           on-click on-realize on-expand on-focus on-blur]}]
+           on-click on-realize on-expand on-focus on-blur
+           initial-focus?]}]
   (cond
     (map? data) ($ map-view {:data data
+                             :initial-focus? initial-focus?
                              :initial-realize initial-realize
                              :treeitem-as treeitem-as
                              :on-click on-click
@@ -367,6 +381,7 @@
                              :on-focus on-focus
                              :on-blur on-blur})
     (coll? data) ($ list-view {:data data
+                               :initial-focus? initial-focus?
                                :initial-realize initial-realize
                                :treeitem-as treeitem-as
                                :on-click on-click
@@ -394,16 +409,19 @@
 
 (defnc root-view
   [{:keys [class data initial-realize treeitem-as
-           on-click on-realize on-expand on-focus on-blur]
+           on-click on-realize on-expand on-focus on-blur
+           auto-focus?]
     :or {initial-realize 1
-         treeitem-as "li"}}]
+         treeitem-as "li"
+         auto-focus? false}}]
   (helix.core/provider
    {:context focus-tree-context
-    :value (use-focus-tree)}
+    :value (use-focus-tree auto-focus?)}
    (d/ul
     {:role "tree"
      :class [class "town_lilac_edn-tree__root"]}
     ($ view {:data data
+             :initial-focus? true
              :treeitem-as treeitem-as
              :initial-realize initial-realize
              :on-click on-click
@@ -439,8 +457,8 @@
   (.render root (d/div "hi"))
 
   (.render root ($ root-view {:data {:foo #{"bar"}
-                                     :baz [1 2 3 
-                                           {:arst {'neio (ex-info "foo" {})}} 
+                                     :baz [1 2 3
+                                           {:arst {'neio (ex-info "foo" {})}}
                                            (range 4 10)]}
                               :on-click #(prn "clicked" %2)
                               :on-realize #(prn "realized" %2)
