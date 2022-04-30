@@ -1,5 +1,5 @@
-.town_lilac_view-edn__root [role="treeitem"]::before,
-.town_lilac_view-edn__view [role="treeitem"]::before {
+.town_lilac_edn-tree__root [role="treeitem"]::before,
+.town_lilac_edn-tree__view [role="treeitem"]::before {
     content: ' ';
     display: inline-block;
   
@@ -15,16 +15,16 @@
     transition: transform .2s ease-out;
 }
 
-.town_lilac_view-edn__root [role="treeitem"][aria-expanded="true"]::before,
-.town_lilac_view-edn__view [role="treeitem"][aria-expanded="true"]::before {
+.town_lilac_edn-tree__root [role="treeitem"][aria-expanded="true"]::before,
+.town_lilac_edn-tree__view [role="treeitem"][aria-expanded="true"]::before {
     transform: rotate(90deg) translateX(-3px);
 }
 
-li[role="treeitem"].town_lilac_view-edn__no-expand::before {
+li[role="treeitem"].town_lilac_edn-tree__no-expand::before {
     display: none;
 }
 
-.town_lilac_view-edn__root, .town_lilac_view-edn__view {
+.town_lilac_edn-tree__root, .town_lilac_edn-tree__view {
     font-family: monospace;
     font-size: 1rem;
     margin: 0;
@@ -35,45 +35,45 @@ li[role="treeitem"].town_lilac_view-edn__no-expand::before {
     gap: 0 8px;
 }
 
-/*.town_lilac_view-edn__root:focus, .town_lilac_view-edn__view:focus {
+/*.town_lilac_edn-tree__root:focus, .town_lilac_edn-tree__view:focus {
     outline: 1px solid #000;
 }*/
 
-.town_lilac_view-edn__root > [role="treeitem"][aria-expanded="true"] > ul,
-.town_lilac_view-edn__view > [role="treeitem"][aria-expanded="true"] > ul {
+.town_lilac_edn-tree__root > [role="treeitem"][aria-expanded="true"] > ul,
+.town_lilac_edn-tree__view > [role="treeitem"][aria-expanded="true"] > ul {
     flex-direction: column;
 }
 
-.town_lilac_view-edn__map-view, .town_lilac_view-edn__list-view {
+.town_lilac_edn-tree__map-view, .town_lilac_edn-tree__list-view {
     padding-left: 10px;
     padding-right: 10px;
 }
 
-.town_lilac_view-edn__set-view {
+.town_lilac_edn-tree__set-view {
     padding-left: 18px;
     padding-right: 10px;
 }
 
-.town_lilac_view-edn__map_begin {
+.town_lilac_edn-tree__map_begin {
     font-size: 1rem;
     position: absolute;
     left: -2px;
 }
 
-.town_lilac_view-edn__map_end {
+.town_lilac_edn-tree__map_end {
     font-size: 1rem;
     position: absolute;
     right: -2px;
     bottom: 0;
 }
 
-.town_lilac_view-edn__list_begin {
+.town_lilac_edn-tree__list_begin {
     font-size: 1rem;
     position: absolute;
     left: -2px;
 }
 
-.town_lilac_view-edn__list_end {
+.town_lilac_edn-tree__list_end {
     font-size: 1rem;
     position: absolute;
     right: 0;

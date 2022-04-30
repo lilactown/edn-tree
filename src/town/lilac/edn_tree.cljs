@@ -162,8 +162,8 @@
       {:context focus-tree-context
        :value context}
       (d/ul
-       {:class ["town_lilac_view-edn__view"
-                "town_lilac_view-edn__map-entry"]
+       {:class ["town_lilac_edn-tree__view"
+                "town_lilac_edn-tree__map-entry"]
         :role "group"}
        ($ view {:data k
                 :initial-realize initial-realize
@@ -203,7 +203,7 @@
       :tabindex tabindex
       :ref focus-ref
       :class (when (or (not realized?) (> 2 (count data)))
-               "town_lilac_view-edn__no-expand")
+               "town_lilac_edn-tree__no-expand")
       :on-focus (hooks/use-callback
                  [on-focus data]
                  #(do (.stopPropagation %)
@@ -237,8 +237,8 @@
       {:context focus-tree-context
        :value context}
       (d/ul
-       {:class ["town_lilac_view-edn__view"
-                "town_lilac_view-edn__map-view"]
+       {:class ["town_lilac_edn-tree__view"
+                "town_lilac_edn-tree__map-view"]
         :role "group"
         :on-click #(do (.stopPropagation %)
                        (handle-click %)
@@ -246,7 +246,7 @@
                        (maybe-call on-click % data)
                        (when (not realized?)
                          (maybe-call on-realize % data)))}
-       (d/span {:class "town_lilac_view-edn__map_begin"} "{")
+       (d/span {:class "town_lilac_edn-tree__map_begin"} "{")
        (if realized?
          (for [[k v] data]
            ($ map-entry-view {:key (str (hash k) (hash v))
@@ -262,7 +262,7 @@
                               :on-focus on-focus
                               :on-blur on-blur}))
          "...")
-       (d/span {:class "town_lilac_view-edn__map_end"} "}"))))))
+       (d/span {:class "town_lilac_edn-tree__map_end"} "}"))))))
 
 
 (defnc list-view
@@ -290,7 +290,7 @@
          :tabindex tabindex
          :ref focus-ref
          :class (when (or (not realized?) (> 2 (count data)))
-                  "town_lilac_view-edn__no-expand")
+                  "town_lilac_edn-tree__no-expand")
          :on-focus (hooks/use-callback
                     [on-focus data]
                     #(do (.stopPropagation %)
@@ -324,10 +324,10 @@
          {:context focus-tree-context
           :value context}
          (d/ul
-          {:class ["town_lilac_view-edn__view"
+          {:class ["town_lilac_edn-tree__view"
                    (if (set? data)
-                     "town_lilac_view-edn__set-view"
-                     "town_lilac_view-edn__list-view")]
+                     "town_lilac_edn-tree__set-view"
+                     "town_lilac_edn-tree__list-view")]
            :role "group"
            :on-click (fn [e]
                        (.stopPropagation e)
@@ -336,7 +336,7 @@
                        (maybe-call on-click e data)
                        (when (not realized?)
                          (maybe-call on-realize e data)))}
-          (d/span {:class "town_lilac_view-edn__list_begin"} begin)
+          (d/span {:class "town_lilac_edn-tree__list_begin"} begin)
           (if realized?
             (for [v data]
               ($ view {:key (hash v)
@@ -351,7 +351,7 @@
                        :on-focus on-focus
                        :on-blur on-blur}))
             "...")
-          (d/span {:class "town_lilac_view-edn__list_end"} end))))))
+          (d/span {:class "town_lilac_edn-tree__list_end"} end))))))
 
 
 (defnc view
@@ -380,7 +380,7 @@
                         :on-click #(do (.stopPropagation %)
                                        (maybe-call on-click % data))}
                        (d/span
-                        {:class "town_lilac_view-edn__view"}
+                        {:class "town_lilac_edn-tree__view"}
                         "\"" data "\""))
     :else ($d treeitem-as
               {:role "none"
@@ -388,7 +388,7 @@
                :on-click #(do (.stopPropagation %)
                               (maybe-call on-click % data))}
               (d/span
-               {:class "town_lilac_view-edn__view"}
+               {:class "town_lilac_edn-tree__view"}
                (str data)))))
 
 
@@ -402,7 +402,7 @@
     :value (use-focus-tree)}
    (d/ul
     {:role "tree"
-     :class [class "town_lilac_view-edn__root"]}
+     :class [class "town_lilac_edn-tree__root"]}
     ($ view {:data data
              :treeitem-as treeitem-as
              :initial-realize initial-realize
