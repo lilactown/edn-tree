@@ -9,7 +9,7 @@
   (helix.core/create-context nil))
 
 
-(defn index-of
+(defn- index-of
   [f coll]
   (loop [i 0
          coll coll]
@@ -26,8 +26,9 @@
   (nth [1 2 3] 1))
 
 
-(defn compare-pos
+(defn- compare-pos
   [e1 e2]
+  ;; see docs for compareDocumentPosition
   (condp (comp pos? bit-and) (.compareDocumentPosition e1 e2)
     16 -1 ; e1 contains e2
     8 1 ; e1 is contained in e2
@@ -37,6 +38,11 @@
 
 
 (defn focus-reducer
+  "state :: {:focus #helix/ref [DOMElement]
+             :nodes [{:level 0
+                      :ref #helix/ref [DOMElement]}]}
+   action :: {:type :add | :remove | ,,,
+              :value #helix/ref [DOMElement]}"
   [state action]
   (case (:type action)
     :add (let [{:keys [level value] :or {level 0}} action]
@@ -141,57 +147,57 @@
                 handle-click
                 handle-key-down]} (use-focus-leaf focus-ref)]
     ($d treeitem-as
-     {:role "treeitem"
-      :aria-expanded expanded?
-      :tabindex tabindex
-      :ref focus-ref
-      :on-focus (hooks/use-callback
-                 [on-focus k v]
-                 #(do (.stopPropagation %)
-                      (maybe-call on-focus % [k v])))
-      :on-blur (hooks/use-callback
-                [on-blur k v]
-                #(do (.stopPropagation %)
-                     (maybe-call on-blur % [k v])))
-      :on-key-down (hooks/use-callback
+        {:role "treeitem"
+         :aria-expanded expanded?
+         :tabindex tabindex
+         :ref focus-ref
+         :on-focus (hooks/use-callback
+                    [on-focus k v]
+                    #(do (.stopPropagation %)
+                         (maybe-call on-focus % [k v])))
+         :on-blur (hooks/use-callback
+                   [on-blur k v]
+                   #(do (.stopPropagation %)
+                        (maybe-call on-blur % [k v])))
+         :on-key-down (hooks/use-callback
+                       :auto-deps
+                       #(do (.stopPropagation %)
+                            (handle-key-down %)
+                            (when (= 13 (.-keyCode %)) ; enter
+                              (set-expanded not)
+                              (when (not expanded?)
+                                (maybe-call on-expand % [k v])))))
+         :on-click (hooks/use-callback
                     :auto-deps
                     #(do (.stopPropagation %)
-                         (handle-key-down %)
-                         (when (= 13 (.-keyCode %)) ; enter
-                           (set-expanded not)
-                           (when (not expanded?)
-                             (maybe-call on-expand % [k v])))))
-      :on-click (hooks/use-callback
-                 :auto-deps
-                 #(do (.stopPropagation %)
-                      (handle-click %)
-                      (set-expanded not)
-                      (maybe-call on-click % [k v])
-                      (when (not expanded?)
-                        (maybe-call on-expand % [k v]))))}
-     (helix.core/provider
-      {:context focus-tree-context
-       :value context}
-      (d/ul
-       {:class ["town_lilac_edn-tree__view"
-                "town_lilac_edn-tree__map-entry"]
-        :role "group"}
-       ($ view {:data k
-                :initial-realize initial-realize
-                :treeitem-as treeitem-as
-                :on-click on-click
-                :on-realize on-realize
-                :on-expand on-expand
-                :on-focus on-focus
-                :on-blur on-blur})
-       ($ view {:data v
-                :initial-realize initial-realize
-                :treeitem-as treeitem-as
-                :on-click on-click
-                :on-realize on-realize
-                :on-expand on-expand
-                :on-focus on-focus
-                :on-blur on-blur}))))))
+                         (handle-click %)
+                         (set-expanded not)
+                         (maybe-call on-click % [k v])
+                         (when (not expanded?)
+                           (maybe-call on-expand % [k v]))))}
+        (helix.core/provider
+         {:context focus-tree-context
+          :value context}
+         (d/ul
+          {:class ["town_lilac_edn-tree__view"
+                   "town_lilac_edn-tree__map-entry"]
+           :role "group"}
+          ($ view {:data k
+                   :initial-realize initial-realize
+                   :treeitem-as treeitem-as
+                   :on-click on-click
+                   :on-realize on-realize
+                   :on-expand on-expand
+                   :on-focus on-focus
+                   :on-blur on-blur})
+          ($ view {:data v
+                   :initial-realize initial-realize
+                   :treeitem-as treeitem-as
+                   :on-click on-click
+                   :on-realize on-realize
+                   :on-expand on-expand
+                   :on-focus on-focus
+                   :on-blur on-blur}))))))
 
 
 (defnc map-view
@@ -210,71 +216,71 @@
                                    focus-ref
                                    {:initial-focus? initial-focus?})]
     ($d treeitem-as
-     {:role "treeitem"
-      :aria-expanded expanded?
-      :tabindex tabindex
-      :ref focus-ref
-      :class (when (or (not realized?) (> 2 (count data)))
-               "town_lilac_edn-tree__no-expand")
-      :on-focus (hooks/use-callback
-                 [on-focus data]
-                 #(do (.stopPropagation %)
-                      (maybe-call on-focus % data)))
-      :on-blur (hooks/use-callback
-                [on-blur data]
-                #(do (.stopPropagation %)
-                     (maybe-call on-blur % data)))
-      :on-key-down (hooks/use-callback
+        {:role "treeitem"
+         :aria-expanded expanded?
+         :tabindex tabindex
+         :ref focus-ref
+         :class (when (or (not realized?) (> 2 (count data)))
+                  "town_lilac_edn-tree__no-expand")
+         :on-focus (hooks/use-callback
+                    [on-focus data]
+                    #(do (.stopPropagation %)
+                         (maybe-call on-focus % data)))
+         :on-blur (hooks/use-callback
+                   [on-blur data]
+                   #(do (.stopPropagation %)
+                        (maybe-call on-blur % data)))
+         :on-key-down (hooks/use-callback
+                       :auto-deps
+                       #(do (.stopPropagation %)
+                            (handle-key-down %)
+                            (case (.-keyCode %)
+                         ;; enter
+                              13 (do (set-realized true)
+                                     (set-expanded not)
+                                     (when (not expanded?)
+                                       (maybe-call on-expand % data))
+                                     (when (not realized?)
+                                       (maybe-call on-realize % data)))
+                              nil)))
+         :on-click (hooks/use-callback
                     :auto-deps
                     #(do (.stopPropagation %)
-                         (handle-key-down %)
-                         (case (.-keyCode %)
-                         ;; enter
-                           13 (do (set-realized true)
-                                  (set-expanded not)
-                                  (when (not expanded?)
-                                    (maybe-call on-expand % data))
-                                  (when (not realized?)
-                                    (maybe-call on-realize % data)))
-                           nil)))
-      :on-click (hooks/use-callback
-                 :auto-deps
-                 #(do (.stopPropagation %)
-                      (handle-click %)
-                      (set-expanded not)
-                      (maybe-call on-click % data)
-                      (when (not expanded?)
-                        (maybe-call on-expand % data))))}
-     (helix.core/provider
-      {:context focus-tree-context
-       :value context}
-      (d/ul
-       {:class ["town_lilac_edn-tree__view"
-                "town_lilac_edn-tree__map-view"]
-        :role "group"
-        :on-click #(do (.stopPropagation %)
-                       (handle-click %)
-                       (set-realized true)
-                       (maybe-call on-click % data)
-                       (when (not realized?)
-                         (maybe-call on-realize % data)))}
-       (d/span {:class "town_lilac_edn-tree__map_begin"} "{")
-       (if realized?
-         (for [[k v] data]
-           ($ map-entry-view {:key (str (hash k) (hash v))
-                              :initial-realize (if (boolean? initial-realize)
-                                                 initial-realize
-                                                 (dec initial-realize))
-                              :k k
-                              :v v
-                              :treeitem-as treeitem-as
-                              :on-click on-click
-                              :on-realize on-realize
-                              :on-expand on-expand
-                              :on-focus on-focus
-                              :on-blur on-blur}))
-         "...")
-       (d/span {:class "town_lilac_edn-tree__map_end"} "}"))))))
+                         (handle-click %)
+                         (set-expanded not)
+                         (maybe-call on-click % data)
+                         (when (not expanded?)
+                           (maybe-call on-expand % data))))}
+        (helix.core/provider
+         {:context focus-tree-context
+          :value context}
+         (d/ul
+          {:class ["town_lilac_edn-tree__view"
+                   "town_lilac_edn-tree__map-view"]
+           :role "group"
+           :on-click #(do (.stopPropagation %)
+                          (handle-click %)
+                          (set-realized true)
+                          (maybe-call on-click % data)
+                          (when (not realized?)
+                            (maybe-call on-realize % data)))}
+          (d/span {:class "town_lilac_edn-tree__map_begin"} "{")
+          (if realized?
+            (for [[k v] data]
+              ($ map-entry-view {:key (str (hash k) (hash v))
+                                 :initial-realize (if (boolean? initial-realize)
+                                                    initial-realize
+                                                    (dec initial-realize))
+                                 :k k
+                                 :v v
+                                 :treeitem-as treeitem-as
+                                 :on-click on-click
+                                 :on-realize on-realize
+                                 :on-expand on-expand
+                                 :on-focus on-focus
+                                 :on-blur on-blur}))
+            "...")
+          (d/span {:class "town_lilac_edn-tree__map_end"} "}"))))))
 
 
 (defnc list-view
@@ -407,7 +413,7 @@
                (str data)))))
 
 
-(defnc root-view
+(defnc tree
   [{:keys [class data initial-realize treeitem-as
            on-click on-realize on-expand on-focus on-blur
            auto-focus?]
@@ -456,12 +462,12 @@
 
   (.render root (d/div "hi"))
 
-  (.render root ($ root-view {:data {:foo #{"bar"}
-                                     :baz [1 2 3
-                                           {:arst {'neio (ex-info "foo" {})}}
-                                           (range 4 10)]}
-                              :on-click #(prn "clicked" %2)
-                              :on-realize #(prn "realized" %2)
-                              :on-expand #(prn "expanded" %2)
-                              :on-focus #(prn "focus" %2)
-                              :on-blur #(prn "blur" %2)})))
+  (.render root ($ tree {:data {:foo #{"bar"}
+                                :baz [1 2 3
+                                      {:arst {'neio (ex-info "foo" {})}}
+                                      (range 4 10)]}
+                         :on-click #(prn "clicked" %2)
+                         :on-realize #(prn "realized" %2)
+                         :on-expand #(prn "expanded" %2)
+                         :on-focus #(prn "focus" %2)
+                         :on-blur #(prn "blur" %2)})))
