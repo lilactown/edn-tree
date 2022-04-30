@@ -1,0 +1,81 @@
+.town_lilac_edn-tree__root [role="treeitem"]::before,
+.town_lilac_edn-tree__view [role="treeitem"]::before {
+    content: ' ';
+    display: inline-block;
+  
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid black;
+  
+    vertical-align: middle;
+    margin-right: .4rem;
+    margin-left: .2rem;
+    transform: translateY(-2px);
+  
+    transition: transform .2s ease-out;
+}
+
+.town_lilac_edn-tree__root [role="treeitem"][aria-expanded="true"]::before,
+.town_lilac_edn-tree__view [role="treeitem"][aria-expanded="true"]::before {
+    transform: rotate(90deg) translateX(-3px);
+}
+
+li[role="treeitem"].town_lilac_edn-tree__no-expand::before {
+    display: none;
+}
+
+.town_lilac_edn-tree__root, .town_lilac_edn-tree__view {
+    font-family: monospace;
+    font-size: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    position: relative;
+    display: inline-flex;
+    gap: 0 8px;
+}
+
+/*.town_lilac_edn-tree__root:focus, .town_lilac_edn-tree__view:focus {
+    outline: 1px solid #000;
+}*/
+
+.town_lilac_edn-tree__root > [role="treeitem"][aria-expanded="true"] > ul,
+.town_lilac_edn-tree__view > [role="treeitem"][aria-expanded="true"] > ul {
+    flex-direction: column;
+}
+
+.town_lilac_edn-tree__map-view, .town_lilac_edn-tree__list-view {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.town_lilac_edn-tree__set-view {
+    padding-left: 18px;
+    padding-right: 10px;
+}
+
+.town_lilac_edn-tree__map_begin {
+    font-size: 1rem;
+    position: absolute;
+    left: -2px;
+}
+
+.town_lilac_edn-tree__map_end {
+    font-size: 1rem;
+    position: absolute;
+    right: -2px;
+    bottom: 0;
+}
+
+.town_lilac_edn-tree__list_begin {
+    font-size: 1rem;
+    position: absolute;
+    left: -2px;
+}
+
+.town_lilac_edn-tree__list_end {
+    font-size: 1rem;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}

@@ -149,7 +149,7 @@
     ($d treeitem-as
         {:role "treeitem"
          :aria-expanded expanded?
-         :tabindex tabindex
+         :tab-index tabindex
          :ref focus-ref
          :on-focus (hooks/use-callback
                     [on-focus k v]
@@ -218,7 +218,7 @@
     ($d treeitem-as
         {:role "treeitem"
          :aria-expanded expanded?
-         :tabindex tabindex
+         :tab-index tabindex
          :ref focus-ref
          :class (when (or (not realized?) (> 2 (count data)))
                   "town_lilac_edn-tree__no-expand")
@@ -305,7 +305,7 @@
     ($d treeitem-as
         {:role "treeitem"
          :aria-expanded expanded?
-         :tabindex tabindex
+         :tab-index tabindex
          :ref focus-ref
          :class (when (or (not realized?) (> 2 (count data)))
                   "town_lilac_edn-tree__no-expand")
@@ -466,6 +466,7 @@
                                 :baz [1 2 3
                                       {:arst {'neio (ex-info "foo" {})}}
                                       (range 4 10)]}
+                         :initial-realize true
                          :on-click #(prn "clicked" %2)
                          :on-realize #(prn "realized" %2)
                          :on-expand #(prn "expanded" %2)

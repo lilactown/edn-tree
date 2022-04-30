@@ -1,5 +1,10 @@
-{:source-paths ["src"]
+{:source-paths ["src" "demo/src"]
  :dependencies [[lilactown/helix "0.1.5"]
                 [binaryage/devtools "1.0.6"]]
- :dev-http {8080 "resources"}
- :builds {}}
+ :dev-http {8080 "resources"
+            9090 "demo/public"}
+ :builds {:demo {:target :browser
+                 :output-dir "demo/public/js"
+                 :asset-path "/js"
+                 :modules {:main {:entries [town.lilac.edn-tree.demo]
+                                  :init-fn town.lilac.edn-tree.demo/start}}}}}

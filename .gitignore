@@ -3,3 +3,6 @@ node_modules/
 .shadow-cljs
 .cpcache/
 out/
+cljs-runtime/
+main.js
+manifest.edn
