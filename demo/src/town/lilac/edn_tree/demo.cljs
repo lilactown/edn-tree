@@ -11,9 +11,10 @@
 
 
 (defnc tree
-  [{:keys [edn-str initial-realize]}]
+  [{:keys [edn-str initial-realize expanded?]}]
   ($ edn-tree/root
      {:data (edn/read-string edn-str)
+      :expanded? expanded?
       :initial-realize initial-realize
       :on-click #(prn "clicked" %2)
       :on-realize #(prn "realized" %2)
@@ -55,6 +56,7 @@
                                                       :modules {:main {:entries [town.lilac.edn-tree.demo]
                                                                        :init-fn town.lilac.edn-tree.demo/start}}}}})))
         [realize set-realize] (hooks/use-state 1)
+        [expand-all? set-expand-all] (hooks/use-state false)
         edn-str (react/useDeferredValue -edn-str)]
     (d/div
      {:style {:padding 10}}
@@ -75,13 +77,20 @@
        (d/label
         (d/input {:type "checkbox"
                   :style {:margin-right 5}
+                  :checked (true? realize)
                   :on-change #(if (.. % -target -checked)
                                 (set-realize true)
                                 (set-realize 1))})
-        "Realize all?"))
+        "Realize all?")
+       (d/button
+        {:on-click #(set-expand-all not)}
+        (if expand-all?
+          "Collapse all"
+          "Expand all")))
       ($ error-boundary
          {:key (str realize edn-str)}
          ($ tree {:edn-str edn-str
+                  :expanded? expand-all?
                   :initial-realize realize})))
      (d/div
       {:style {:padding 15}}
