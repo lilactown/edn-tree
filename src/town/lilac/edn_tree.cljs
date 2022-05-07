@@ -59,12 +59,45 @@
                         (remove #(= value (:ref %)) nodes))))
     :set-focus (let [{:keys [value]} action]
                  (assoc state :focus value))
+    :move-focus-up
+    (let [nodes (->> (:nodes state)
+                     (take-while #(not= (:focus state) (:ref %))))
+          containing-refs (filter
+                           #(pos?
+                             (bit-and
+                              16
+                              (.compareDocumentPosition
+                               @(:ref %)
+                               @(:focus state))))
+                           nodes)
+          up-ref (:ref (last containing-refs))]
+      (if (some? up-ref)
+        (assoc state :focus up-ref)
+        state))
+
+    :move-focus-down
+    (let [nodes (->> (:nodes state)
+                     (drop-while #(not= (:focus state) (:ref %))))
+          containing-refs (filter
+                           #(pos?
+                             (bit-and
+                              8
+                              (.compareDocumentPosition
+                               @(:ref %)
+                               @(:focus state))))
+                           nodes)
+          up-ref (:ref (first containing-refs))]
+      (if (some? up-ref)
+        (assoc state :focus up-ref)
+        state))
+
     :move-focus-prev
     (let [index (index-of #(= (:focus state) (:ref %))
                           (:nodes state))
           next-index (if (<= 0 (dec index)) (dec index) index)
-          next-ref (:ref (nth (:nodes state) next-index))]
-      (assoc state :focus next-ref))
+          prev-ref (:ref (nth (:nodes state) next-index))]
+      (assoc state :focus prev-ref))
+
     :move-focus-next
     (let [index (index-of #(= (:focus state) (:ref %))
                           (:nodes state))
@@ -122,8 +155,13 @@
       :handle-key-down (fn move-focus
                          [e]
                          (case (.-keyCode e)
-                           (37 38) (dispatch {:type :move-focus-prev})
-                           (39 40) (dispatch {:type :move-focus-next})
+                           ;; left arrow
+                           (37) (dispatch {:type :move-focus-prev})
+                           ;; up arrow
+                           (38) (dispatch {:type :move-focus-up})
+                           ;; right arrow / down arrow
+                           (39) (dispatch {:type :move-focus-next})
+                           (40) (dispatch {:type :move-focus-down})
                            nil))})))
 
 
