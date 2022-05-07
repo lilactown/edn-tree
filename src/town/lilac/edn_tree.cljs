@@ -203,6 +203,7 @@
          :on-key-down (hooks/use-callback
                        :auto-deps
                        #(do (.stopPropagation %)
+                            (.preventDefault %)
                             (handle-key-down %)
                             (when (= 13 (.-keyCode %)) ; enter
                               (set-expanded not)
@@ -279,6 +280,7 @@
          :on-key-down (hooks/use-callback
                        :auto-deps
                        #(do (.stopPropagation %)
+                            (.preventDefault %)
                             (handle-key-down %)
                             (case (.-keyCode %)
                          ;; enter
@@ -372,6 +374,7 @@
          :on-key-down (hooks/use-callback
                        :auto-deps
                        #(do (.stopPropagation %)
+                            (.preventDefault %)
                             (handle-key-down %)
                             (case (.-keyCode %)
                              ;; enter
