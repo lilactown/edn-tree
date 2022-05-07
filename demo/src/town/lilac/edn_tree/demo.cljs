@@ -11,10 +11,10 @@
 
 
 (defnc tree
-  [{:keys [edn-str initial-realize expanded?]}]
+  [{:keys [edn-str initial-realize initial-expanded]}]
   ($ edn-tree/root
      {:data (edn/read-string edn-str)
-      :expanded? expanded?
+      :initial-expanded initial-expanded
       :initial-realize initial-realize
       :on-click #(prn "clicked" %2)
       :on-realize #(prn "realized" %2)
@@ -27,11 +27,17 @@
   (constructor
    [this]
    (set! (.-state this) #js {:error nil}))
+  
+  (componentDidUpdate
+   [this prev-props prev-state]
+   (when (and (not= (.. prev-props -deps) (.. this -props -deps))
+              (some? (.. this -state -error)))
+     (.setState this #js {:error nil})))
 
   ^:static 
   (getDerivedStateFromError
    [this error]
-   (set! (.-state this) #js {:error error}))
+   #js {:error error})
   
   (render
    [^js this]
@@ -56,7 +62,7 @@
                                                       :modules {:main {:entries [town.lilac.edn-tree.demo]
                                                                        :init-fn town.lilac.edn-tree.demo/start}}}}})))
         [realize set-realize] (hooks/use-state 1)
-        [expand-all? set-expand-all] (hooks/use-state false)
+        [expanded set-expand-all] (hooks/use-state 0)
         edn-str (react/useDeferredValue -edn-str)]
     (d/div
      {:style {:padding 10}}
@@ -73,7 +79,9 @@
        {:style {:margin-top 0}}
        "Tree")
       (d/div
-       {:style {:margin-bottom 10}}
+       {:style {:margin-bottom 10
+                :display "flex"
+                :gap "0 10px"}}
        (d/label
         (d/input {:type "checkbox"
                   :style {:margin-right 5}
@@ -81,17 +89,21 @@
                   :on-change #(if (.. % -target -checked)
                                 (set-realize true)
                                 (set-realize 1))})
-        "Realize all?")
-       (d/button
-        {:on-click #(set-expand-all not)}
-        (if expand-all?
-          "Collapse all"
-          "Expand all")))
-      ($ error-boundary
-         {:key (str realize edn-str)}
-         ($ tree {:edn-str edn-str
-                  :expanded? expand-all?
-                  :initial-realize realize})))
+        "Initial realize all?")
+       (d/label
+        (d/input {:type "checkbox"
+                  :style {:margin-right 5}
+                  :checked (true? expanded)
+                  :on-change #(if (.. % -target -checked)
+                                (set-expand-all true)
+                                (set-expand-all 0))})
+        "Initial expand all?"))
+       ($ error-boundary
+          {:deps [realize edn-str]}
+          ($ tree {:key (str realize expanded)
+                   :edn-str edn-str
+                   :initial-expanded expanded
+                   :initial-realize realize})))
      (d/div
       {:style {:padding 15}}
       (d/h2 {:style {:margin-top 0}} "Source")

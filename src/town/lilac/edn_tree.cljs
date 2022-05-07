@@ -139,16 +139,16 @@
 (defnc map-entry-view
   [{:keys [k v initial-realize treeitem-as
            on-click on-realize on-expand on-focus on-blur
-           initial-focus? expanded?]}]
-  (let [[-expanded? set-expanded] (hooks/use-state false)
+           initial-focus? initial-expanded]}]
+  (let [[-expanded? set-expanded] (hooks/use-state
+                                   (or (true? initial-expanded)
+                                       (and (number? initial-expanded)
+                                            (pos? initial-expanded))))
         focus-ref (hooks/use-ref nil)
         {:keys [context
                 tabindex
                 handle-click
                 handle-key-down]} (use-focus-leaf focus-ref)]
-    (hooks/use-effect
-     [expanded?]
-     (set-expanded expanded?))
     ($d treeitem-as
         {:role "treeitem"
          :aria-expanded -expanded?
@@ -186,7 +186,7 @@
                    "town_lilac_edn-tree__map-entry"]
            :role "group"}
           ($ view {:data k
-                   :expanded? expanded?
+                   :initial-expanded initial-expanded
                    :initial-realize initial-realize
                    :treeitem-as treeitem-as
                    :on-click on-click
@@ -195,7 +195,7 @@
                    :on-focus on-focus
                    :on-blur on-blur})
           ($ view {:data v
-                   :expanded? expanded?
+                   :initial-expanded initial-expanded
                    :initial-realize initial-realize
                    :treeitem-as treeitem-as
                    :on-click on-click
@@ -208,11 +208,14 @@
 (defnc map-view
   [{:keys [data initial-realize treeitem-as
            on-click on-realize on-expand on-focus on-blur
-           initial-focus? expanded?]}]
+           initial-focus? initial-expanded]}]
   (let [initial-realized? (or (true? initial-realize)
                               (pos? initial-realize))
         [realized? set-realized] (hooks/use-state initial-realized?)
-        [-expanded? set-expanded] (hooks/use-state false)
+        [-expanded? set-expanded] (hooks/use-state
+                                   (or (true? initial-expanded)
+                                       (and (number? initial-expanded)
+                                            (pos? initial-expanded))))
         focus-ref (hooks/use-ref nil)
         {:keys [context
                 tabindex
@@ -220,9 +223,6 @@
                 handle-key-down]} (use-focus-leaf
                                    focus-ref
                                    {:initial-focus? initial-focus?})]
-    (hooks/use-effect
-     [expanded?]
-     (set-expanded expanded?))
     ($d treeitem-as
         {:role "treeitem"
          :aria-expanded -expanded?
@@ -281,7 +281,9 @@
                                                     (dec initial-realize))
                                  :k k
                                  :v v
-                                 :expanded? expanded?
+                                 :initial-expanded (if (boolean? initial-expanded)
+                                                     initial-expanded
+                                                     (dec initial-expanded))
                                  :treeitem-as treeitem-as
                                  :on-click on-click
                                  :on-realize on-realize
@@ -295,7 +297,7 @@
 (defnc list-view
   [{:keys [data initial-realize treeitem-as
            on-click on-realize on-expand on-focus on-blur
-           initial-focus? expanded?]}]
+           initial-focus? initial-expanded]}]
   (let [[begin end] (cond
                       (vector? data) "[]"
                       (set? data) ["#{" "}"]
@@ -303,7 +305,10 @@
         initial-realized? (or (true? initial-realize)
                               (pos? initial-realize))
         [realized? set-realized] (hooks/use-state initial-realized?)
-        [-expanded? set-expanded] (hooks/use-state false)
+        [-expanded? set-expanded] (hooks/use-state
+                                   (or (true? initial-expanded)
+                                       (and (number? initial-expanded)
+                                            (pos? initial-expanded))))
         focus-ref (hooks/use-ref nil)
         {:keys [context
                 tabindex
@@ -311,9 +316,6 @@
                 handle-key-down]} (use-focus-leaf
                                    focus-ref
                                    {:initial-focus? initial-focus?})]
-    (hooks/use-effect
-     [expanded?]
-     (set-expanded expanded?))
     ($d treeitem-as
         {:role "treeitem"
          :aria-expanded -expanded?
@@ -374,7 +376,9 @@
                                           initial-realize
                                           (dec initial-realize))
                        :data v
-                       :expanded? expanded?
+                       :initial-expanded (if (boolean? initial-expanded)
+                                           initial-expanded
+                                           (dec initial-expanded))
                        :treeitem-as treeitem-as
                        :on-click on-click
                        :on-realize on-realize
@@ -388,10 +392,10 @@
 (defnc view
   [{:keys [data initial-realize treeitem-as
            on-click on-realize on-expand on-focus on-blur
-           initial-focus? expanded?]}]
+           initial-focus? initial-expanded]}]
   (cond
     (map? data) ($ map-view {:data data
-                             :expanded? expanded?
+                             :initial-expanded initial-expanded
                              :initial-focus? initial-focus?
                              :initial-realize initial-realize
                              :treeitem-as treeitem-as
@@ -401,7 +405,7 @@
                              :on-focus on-focus
                              :on-blur on-blur})
     (coll? data) ($ list-view {:data data
-                               :expanded? expanded?
+                               :initial-expanded initial-expanded
                                :initial-focus? initial-focus?
                                :initial-realize initial-realize
                                :treeitem-as treeitem-as
@@ -431,8 +435,9 @@
 (defnc root
   [{:keys [class data initial-realize treeitem-as
            on-click on-realize on-expand on-focus on-blur
-           auto-focus? expanded?]
+           auto-focus? initial-expanded]
     :or {initial-realize 1
+         initial-expanded false
          treeitem-as "li"
          auto-focus? false}}]
   (helix.core/provider
@@ -445,7 +450,7 @@
              :initial-focus? true
              :treeitem-as treeitem-as
              :initial-realize initial-realize
-             :expanded? expanded?
+             :initial-expanded initial-expanded
              :on-click on-click
              :on-realize on-realize
              :on-expand on-expand
