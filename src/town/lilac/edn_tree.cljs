@@ -435,17 +435,15 @@
            on-click on-realize on-expand on-focus on-blur
            initial-focus? initial-expanded]}]
   (cond
-    (map? data) ($ map-view {:data data
-                             :initial-expanded initial-expanded
-                             :initial-focus? initial-focus?
-                             :initial-realize initial-realize
-                             :treeitem-as treeitem-as
-                             :on-click on-click
-                             :on-realize on-realize
-                             :on-expand on-expand
-                             :on-focus on-focus
-                             :on-blur on-blur})
-    (coll? data) ($ list-view {:data data
+    (map? data) (if (empty? data)
+                  ($d treeitem-as
+                      {:role "none"
+                       :on-click #(do (.stopPropagation %)
+                                      (maybe-call on-click % data))}
+                      (d/span
+                       {:class "town_lilac_edn-tree__view"}
+                       "{}"))
+                  ($ map-view {:data data
                                :initial-expanded initial-expanded
                                :initial-focus? initial-focus?
                                :initial-realize initial-realize
@@ -454,7 +452,28 @@
                                :on-realize on-realize
                                :on-expand on-expand
                                :on-focus on-focus
-                               :on-blur on-blur})
+                               :on-blur on-blur}))
+    (coll? data) (if (empty? data)
+                   ($d treeitem-as
+                       {:role "none"
+                        :on-click #(do (.stopPropagation %)
+                                       (maybe-call on-click % data))}
+                       (d/span
+                        {:class "town_lilac_edn-tree__view"}
+                        (cond
+                          (vector? data) "[]"
+                          (set? data) "#{}"
+                          :else "()")))
+                   ($ list-view {:data data
+                                 :initial-expanded initial-expanded
+                                 :initial-focus? initial-focus?
+                                 :initial-realize initial-realize
+                                 :treeitem-as treeitem-as
+                                 :on-click on-click
+                                 :on-realize on-realize
+                                 :on-expand on-expand
+                                 :on-focus on-focus
+                                 :on-blur on-blur}))
     (string? data) ($d treeitem-as
                        {:role "none"
                         ;:tabindex "-1"
@@ -463,7 +482,11 @@
                        (d/span
                         {:class "town_lilac_edn-tree__view"}
                         "\"" data "\""))
-    (nil? data) "nil"
+    (nil? data) ($d treeitem-as
+                    {:role "none"
+                     :on-click #(do (.stopPropagation %)
+                                    (maybe-call on-click % data))}
+                    (d/span {:class "town_lilac_edn-tree__view"} "nil"))
     :else ($d treeitem-as
               {:role "none"
                ;:tabindex "-1"
