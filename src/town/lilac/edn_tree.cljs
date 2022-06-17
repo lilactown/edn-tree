@@ -25,15 +25,19 @@
   (index-of even? [1 2 3])
   (nth [1 2 3] 1))
 
+(def POS_CONTAINS 16)
+(def POS_CONTAINED 8)
+(def POS_BEFORE 4)
+(def POS_AFTER 2)
 
 (defn- compare-pos
   [e1 e2]
   ;; see docs for compareDocumentPosition
   (condp (comp pos? bit-and) (.compareDocumentPosition e1 e2)
-    16 -1 ; e1 contains e2
-    8 1 ; e1 is contained in e2
-    4 -1 ; e1 before e2
-    2 1 ; e1 after e2
+    POS_CONTAINS -1 ; e1 contains e2
+    POS_CONTAINED 1 ; e1 is contained in e2
+    POS_BEFORE -1 ; e1 before e2
+    POS_AFTER 1 ; e1 after e2
     0))
 
 
@@ -65,7 +69,7 @@
           containing-refs (filter
                            #(pos?
                              (bit-and
-                              16
+                              POS_CONTAINS
                               (.compareDocumentPosition
                                @(:ref %)
                                @(:focus state))))
@@ -81,7 +85,7 @@
           containing-refs (filter
                            #(pos?
                              (bit-and
-                              8
+                              POS_CONTAINED
                               (.compareDocumentPosition
                                @(:ref %)
                                @(:focus state))))
@@ -118,7 +122,7 @@
         initial-focus? (hooks/use-ref true)]
     (hooks/use-effect
      [(:focus tree)]
-     (when-let [el (and (:focus tree) 
+     (when-let [el (and (:focus tree)
                         ;; either it's not the initial focus,
                         ;; or auto-focus? is true
                         (or (not @initial-focus?)
