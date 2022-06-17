@@ -463,6 +463,7 @@
                        (d/span
                         {:class "town_lilac_edn-tree__view"}
                         "\"" data "\""))
+    (nil? data) "nil"
     :else ($d treeitem-as
               {:role "none"
                ;:tabindex "-1"
