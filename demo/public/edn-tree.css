@@ -2,16 +2,16 @@
 .town_lilac_edn-tree__view [role="treeitem"]::before {
     content: ' ';
     display: inline-block;
-  
+
     border-top: 5px solid transparent;
     border-bottom: 5px solid transparent;
     border-left: 5px solid black;
-  
+
     vertical-align: middle;
     margin-right: .4rem;
     margin-left: .2rem;
     transform: translateY(-2px);
-  
+
     transition: transform .2s ease-out;
 }
 
@@ -33,6 +33,7 @@ li[role="treeitem"].town_lilac_edn-tree__no-expand::before {
     position: relative;
     display: inline-flex;
     gap: 0 8px;
+    white-space: nowrap;
 }
 
 /*.town_lilac_edn-tree__root:focus, .town_lilac_edn-tree__view:focus {
