@@ -96,20 +96,27 @@
         state))
 
     :move-focus-prev
-    (let [index (index-of #(= (:focus state) (:ref %))
-                          (:nodes state))
-          next-index (if (<= 0 (dec index)) (dec index) index)
-          prev-ref (:ref (nth (:nodes state) next-index))]
-      (assoc state :focus prev-ref))
+    (let [prev-node (.-previousSibling @(:focus state))
+          ref (some #(when (= prev-node @(:ref %))
+                       (:ref %))
+                    (:nodes state))]
+      (if (some? ref)
+        (assoc state :focus ref)
+        (focus-reducer state {:type :move-focus-up})))
 
     :move-focus-next
-    (let [index (index-of #(= (:focus state) (:ref %))
-                          (:nodes state))
-          next-index (if (< (inc index) (count (:nodes state)))
-                       (inc index)
-                       index)
-          next-ref (:ref (nth (:nodes state) next-index))]
-      (assoc state :focus next-ref))))
+    (let [nodes (->> (:nodes state)
+                     (drop-while #(not= (:focus state) (:ref %))))
+          next-refs (filter #(let [position (.compareDocumentPosition
+                                             @(:ref %)
+                                             @(:focus state))]
+                               (and (pos? (bit-and POS_AFTER position))
+                                    (not (pos? (bit-and POS_CONTAINED position)))))
+                            nodes)
+          next-ref (:ref (first next-refs))]
+      (if (some? next-ref)
+        (assoc state :focus next-ref)
+        state))))
 
 
 (defhook use-focus-tree
