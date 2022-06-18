@@ -167,12 +167,16 @@
                          [e]
                          (case (.-keyCode e)
                            ;; left arrow
-                           (37) (dispatch {:type :move-focus-up})
+                           (37) (do (dispatch {:type :move-focus-up})
+                                    true)
                            ;; up arrow
-                           (38) (dispatch {:type :move-focus-prev})
+                           (38) (do (dispatch {:type :move-focus-prev})
+                                    true)
                            ;; right arrow / down arrow
-                           (39) (dispatch {:type :move-focus-down})
-                           (40) (dispatch {:type :move-focus-next})
+                           (39) (do (dispatch {:type :move-focus-down})
+                                    true)
+                           (40) (do (dispatch {:type :move-focus-next})
+                                    true)
                            nil))})))
 
 
@@ -213,13 +217,19 @@
                         (maybe-call on-blur % [k v])))
          :on-key-down (hooks/use-callback
                        :auto-deps
-                       #(do (.stopPropagation %)
+                       #(cond
+                          (handle-key-down %)
+                          (do
+                            (.stopPropagation %)
+                            (.preventDefault %))
+                          (= 13 (.-keyCode %)) ; enter
+
+                          (do
+                            (.stopPropagation %)
                             (.preventDefault %)
-                            (handle-key-down %)
-                            (when (= 13 (.-keyCode %)) ; enter
-                              (set-expanded not)
-                              (when (not -expanded?)
-                                (maybe-call on-expand % [k v])))))
+                            (set-expanded not)
+                            (when (not -expanded?)
+                              (maybe-call on-expand % [k v])))))
          :on-click (hooks/use-callback
                     :auto-deps
                     #(do (.stopPropagation %)
@@ -290,17 +300,20 @@
                         (maybe-call on-blur % data)))
          :on-key-down (hooks/use-callback
                        :auto-deps
-                       #(do (.stopPropagation %)
-                            (.preventDefault %)
-                            (handle-key-down %)
+                       #(do (when (handle-key-down %)
+                              (.stopPropagation %)
+                              (.preventDefault %))
                             (case (.-keyCode %)
-                         ;; enter
-                              13 (do (set-realized true)
-                                     (set-expanded not)
-                                     (when (not -expanded?)
-                                       (maybe-call on-expand % data))
-                                     (when (not realized?)
-                                       (maybe-call on-realize % data)))
+                              ;; enter
+                              13 (do
+                                   (.stopPropagation %)
+                                   (.preventDefault %)
+                                   (set-realized true)
+                                   (set-expanded not)
+                                   (when (not -expanded?)
+                                     (maybe-call on-expand % data))
+                                   (when (not realized?)
+                                     (maybe-call on-realize % data)))
                               nil)))
          :on-click (hooks/use-callback
                     :auto-deps
@@ -384,12 +397,14 @@
                         (maybe-call on-blur % data)))
          :on-key-down (hooks/use-callback
                        :auto-deps
-                       #(do (.stopPropagation %)
-                            (.preventDefault %)
-                            (handle-key-down %)
+                       #(do (when (handle-key-down %)
+                              (.stopPropagation %)
+                              (.preventDefault %))
                             (case (.-keyCode %)
                              ;; enter
-                              13 (do (set-realized true)
+                              13 (do (.stopPropagation %)
+                                     (.preventDefault %)
+                                     (set-realized true)
                                      (set-expanded not)
                                      (when (not -expanded?)
                                        (maybe-call on-expand % data))
