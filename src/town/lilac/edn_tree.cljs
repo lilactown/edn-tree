@@ -167,12 +167,12 @@
                          [e]
                          (case (.-keyCode e)
                            ;; left arrow
-                           (37) (dispatch {:type :move-focus-prev})
+                           (37) (dispatch {:type :move-focus-up})
                            ;; up arrow
-                           (38) (dispatch {:type :move-focus-up})
+                           (38) (dispatch {:type :move-focus-prev})
                            ;; right arrow / down arrow
-                           (39) (dispatch {:type :move-focus-next})
-                           (40) (dispatch {:type :move-focus-down})
+                           (39) (dispatch {:type :move-focus-down})
+                           (40) (dispatch {:type :move-focus-next})
                            nil))})))
 
 
